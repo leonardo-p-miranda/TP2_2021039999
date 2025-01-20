@@ -261,9 +261,9 @@ int main(int argc, char *argv[])
         }
 
         // Exibe no servidor o log dessa primeira mensagem
-        printf("log:\n%s sensor in (%d,%d)\nmeasurement: %.4f\n\n",
-               init_msg.type, init_msg.coords[0], init_msg.coords[1], init_msg.measurement);
-        fflush(stdout);
+        // printf("log:\n%s sensor in (%d,%d)\nmeasurement: %.4f\n\n",
+        //        init_msg.type, init_msg.coords[0], init_msg.coords[1], init_msg.measurement);
+        // fflush(stdout);
 
         // Adiciona o sensor à lista global
         sensor_info *new_sensor = (sensor_info *)malloc(sizeof(sensor_info));
@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
         pthread_mutex_unlock(&g_mutex);
 
         // Faz broadcast desta primeira medição para todos os sensores do mesmo tipo
-        broadcast_message(&init_msg, -1);
+        // broadcast_message(&init_msg, -1);
 
         // Cria thread para gerenciar este cliente
         pthread_t tid;
