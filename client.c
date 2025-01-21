@@ -225,7 +225,6 @@ int main(int argc, char *argv[])
     strncpy(g_type, argv[idx_type + 1], TYPE_LEN - 1);
     g_type[TYPE_LEN - 1] = '\0'; // Garantir terminação
 
-    // Verifica se é type válido
     if (strcmp(g_type, "temperature") != 0 &&
         strcmp(g_type, "humidity") != 0 &&
         strcmp(g_type, "air_quality") != 0)
@@ -244,7 +243,7 @@ int main(int argc, char *argv[])
 
     if (idx_coords + 2 >= argc)
     {
-        // faltou algo
+        // faltou algo nos argumentos
         fprintf(stderr, "Error: Invalid number of arguments\n");
         print_usage();
         return 1;
@@ -253,7 +252,7 @@ int main(int argc, char *argv[])
     g_x = atoi(argv[idx_coords + 1]);
     g_y = atoi(argv[idx_coords + 2]);
 
-    // Verifica range 0-9
+    // Verifica range 0-9 para coordenadas
     if (g_x < 0 || g_x > 9 || g_y < 0 || g_y > 9)
     {
         fprintf(stderr, "Error: Coordinates must be in the range 0-9\n");
@@ -265,21 +264,20 @@ int main(int argc, char *argv[])
     {
         g_min_measurement = 20.0f;
         g_max_measurement = 40.0f;
-        g_interval = 5; // 5s
+        g_interval = 5; // 5 segundos
     }
     else if (strcmp(g_type, "humidity") == 0)
     {
         g_min_measurement = 10.0f;
         g_max_measurement = 90.0f;
-        g_interval = 7; // 7s
+        g_interval = 7; // 7 segundos
     }
-    else
-    { // air_quality
+    else if (strcmp(g_type, "air_quality") == 0)
+    {
         g_min_measurement = 15.0f;
         g_max_measurement = 30.0f;
-        g_interval = 10; // 10s
+        g_interval = 10; // 10 segundos
     }
-
     g_measurement = rand_between(g_min_measurement, g_max_measurement);
 
     struct addrinfo hints, *res, *p;

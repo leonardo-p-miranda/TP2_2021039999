@@ -28,6 +28,8 @@ typedef struct
     int x, y;
 } sensor_info;
 
+
+// Lista global de sensores por tipo
 static sensor_info g_temperature_list[MAX_SENSORS];
 static int g_temperature_count = 0;
 
@@ -40,7 +42,6 @@ static int g_airq_count = 0;
 /* Mutex global para proteger acesso às listas */
 pthread_mutex_t g_mutex = PTHREAD_MUTEX_INITIALIZER;
 
-// Protótipo da função remove_sensor
 void remove_sensor(int sockfd, const char *type);
 
 void broadcast_message(struct sensor_message *msg, int except_sockfd)
@@ -131,7 +132,6 @@ void *client_thread(void *arg)
     char sensor_type[TYPE_LEN];
     strcpy(sensor_type, sinfo.type);
 
-    /* Recebe mensagens até desconexão */
     struct sensor_message msg;
     while (1)
     {
@@ -142,12 +142,10 @@ void *client_thread(void *arg)
             break;
         }
 
-        // Exibe no servidor o log da mensagem recebida
         printf("log:\n%s sensor in (%d,%d)\nmeasurement: %.4f\n\n",
                msg.type, msg.coords[0], msg.coords[1], msg.measurement);
         fflush(stdout);
 
-        // Encaminha para os demais do mesmo tipo
         broadcast_message(&msg, sockfd);
     }
 
@@ -157,6 +155,7 @@ void *client_thread(void *arg)
     leave_msg.coords[0] = sinfo.x;
     leave_msg.coords[1] = sinfo.y;
     leave_msg.measurement = -1.0000f;
+    
 
     printf("log:\n%s sensor in (%d,%d)\nmeasurement: -1.0000\n\n",
            leave_msg.type, leave_msg.coords[0], leave_msg.coords[1]);
@@ -260,12 +259,7 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        // Exibe no servidor o log dessa primeira mensagem
-        // printf("log:\n%s sensor in (%d,%d)\nmeasurement: %.4f\n\n",
-        //        init_msg.type, init_msg.coords[0], init_msg.coords[1], init_msg.measurement);
-        // fflush(stdout);
 
-        // Adiciona o sensor à lista global
         sensor_info *new_sensor = (sensor_info *)malloc(sizeof(sensor_info));
         new_sensor->sockfd = client_sock;
         strncpy(new_sensor->type, init_msg.type, TYPE_LEN);
@@ -278,25 +272,24 @@ int main(int argc, char *argv[])
             if (g_temperature_count < MAX_SENSORS)
                 g_temperature_list[g_temperature_count++] = *new_sensor;
             else
-                fprintf(stderr, "Erro: Lista de temperatura cheia.\n");
+                fprintf(stderr, "Error: List of temperature is full.\n");
         }
         else if (strcmp(init_msg.type, "humidity") == 0)
         {
             if (g_humidity_count < MAX_SENSORS)
                 g_humidity_list[g_humidity_count++] = *new_sensor;
             else
-                fprintf(stderr, "Erro: Lista de umidade cheia.\n");
+                fprintf(stderr, "Error:List of humidity is full.\n");
         }
         else if (strcmp(init_msg.type, "air_quality") == 0)
         {
             if (g_airq_count < MAX_SENSORS)
                 g_airq_list[g_airq_count++] = *new_sensor;
             else
-                fprintf(stderr, "Erro: Lista de qualidade do ar cheia.\n");
+                fprintf(stderr, "Erro: List of air quality is full.\n");
         }
         else
         {
-            // Tipo inválido? Em tese não deveria chegar aqui, pois o cliente valida.
             free(new_sensor);
             pthread_mutex_unlock(&g_mutex);
             close(client_sock);
@@ -304,10 +297,7 @@ int main(int argc, char *argv[])
         }
         pthread_mutex_unlock(&g_mutex);
 
-        // Faz broadcast desta primeira medição para todos os sensores do mesmo tipo
-        // broadcast_message(&init_msg, -1);
 
-        // Cria thread para gerenciar este cliente
         pthread_t tid;
         pthread_create(&tid, NULL, client_thread, new_sensor);
         pthread_detach(tid);
